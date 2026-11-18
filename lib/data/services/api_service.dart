@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:inventory_management_app/data/exceptions/api_exception.dart';
 import '../models/item.dart';
 
 // service that contains async functions containing all CRUD operations the app can use
 class ApiService {
 
-  static const baseUrl = 'http://192.168.40.40:8000/api/items';
+  static const baseUrl = String.fromEnvironment('API_URL', defaultValue: 'http://192.168.40.40:8000/api/items');  // making the base url dynamic incase the ip changes
   static const _json = {'Content-Type': 'application/json'};
 
   static const _timeout = Duration(seconds: 10);  // adding a timeout to 10 seconds to show error if server does not respond within 10 seconds
@@ -52,7 +53,7 @@ class ApiService {
   // helper func to check if the http call responds with what is expected
   void _check(http.Response res, int expected) {
     if (res.statusCode != expected) {
-      throw Exception('HTTP ${res.statusCode}: ${res.body}');
+      throw ApiException(res.statusCode, res.body);
     }
   }
 }
