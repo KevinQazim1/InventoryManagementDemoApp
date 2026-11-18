@@ -1,4 +1,6 @@
 from django.db import models
+from decimal import Decimal
+from django.core.validators import MinValueValidator
 
 # Create your models here.
 
@@ -8,7 +10,7 @@ class Item(models.Model):   # no Id field is needed since django will automatica
     sku = models.CharField(max_length=64, unique=True)  # makes the db reject duplicates with unique = true, needed for SKUs on items since they all have to be unique
     description = models.TextField(blank=True)
     quantity = models.PositiveIntegerField(default=0)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0"))])      #Extra validators to ensure that the items entered in the app will follow the rules set in the database
     location = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
