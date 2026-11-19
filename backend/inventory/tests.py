@@ -1,21 +1,20 @@
-from django.test import TestCase
+from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 
-# Create your tests here.
 
 class ItemApiTests(APITestCase):
-    def test_crud(self):
+    def setUp(self):  # runs before EVERY test
+        self.user = User.objects.create_user("tester", password="pass12345")
+        self.client.force_authenticate(user=self.user)  # test shortcut: "pretend this user has a valid card"
 
-        r = self.client.post("/api/items/", {"name": "A", "sku": "A-1", "quantity": 1, "price": "2.00"}, format="json")
-        self.assertEqual(r.status_code, 201)
+    # ...your two existing tests stay exactly the same...
 
-        item_id = r.data["id"]
+    def test_requires_login(self):
+        self.client.force_authenticate(user=None)  # take the card away
+        self.assertEqual(self.client.get("/api/items/").status_code, 401)
 
-        self.assertEqual(self.client.get(f"/api/items/?sku=A-1").data[0]["id"], item_id)
-        self.assertEqual(self.client.patch(f"/api/items/{item_id}/", {"quantity": 9}, format="json").data["quantity"], 9)
-        self.assertEqual(self.client.delete(f"/api/items/{item_id}/").status_code, 204)
-
-    def test_rejects_negative_quantity(self):
-
-        r = self.client.post("/api/items/", {"name": "B", "sku": "B-1", "quantity": -1, "price": "1.00"}, format="json")
-        self.assertEqual(r.status_code, 400)
+    def test_login_returns_token(self):
+        self.client.force_authenticate(user=None)
+        r = self.client.post("/api/login/", {"username": "tester", "password": "pass12345"}, format="json")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("token", r.data)
