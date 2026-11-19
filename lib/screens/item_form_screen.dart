@@ -32,15 +32,17 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
     if (_loaded) return; // this can run more than once, only fill the fields the first time
     _loaded = true;
 
-    _item = ModalRoute.of(context)!.settings.arguments as Item?;
-    final item = _item;
-    if (item != null) {
-      _name.text = item.name;
-      _sku.text = item.sku;
-      _description.text = item.description;
-      _quantity.text = '${item.quantity}';
-      _price.text = item.price;
-      _location.text = item.location;
+    final args = ModalRoute.of(context)!.settings.arguments;
+    if (args is Item) {
+      _item = args;
+      _name.text = args.name;
+      _sku.text = args.sku;
+      _description.text = args.description;
+      _quantity.text = '${args.quantity}';
+      _price.text = args.price;
+      _location.text = args.location;
+    } else if (args is String) {
+      _sku.text = args; // scanned a SKU that isn't in the database yet
     }
   }
 

@@ -11,7 +11,8 @@ class ScannerScreen extends StatefulWidget {
 
 // this screen has no knowledge of the api or models so it can be reusable to anything needed
 class _ScannerScreenState extends State<ScannerScreen> {
-  bool _handled = false; // onDetect fires many times per second, only act on the first
+  bool _handled =
+      false; // onDetect fires many times per second, only act on the first
 
   // called continuosly while a code is in view
   void _onDetect(BarcodeCapture capture) {

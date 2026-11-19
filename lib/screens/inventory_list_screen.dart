@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../data/models/item.dart';
 import '../data/services/api_service.dart';
-import '../data/models/item.dart';
-import '../data/services/api_service.dart';
-import 'item_form_screen.dart';
 
 class ItemListScreen extends StatefulWidget {
   const ItemListScreen({super.key});
@@ -14,9 +11,9 @@ class ItemListScreen extends StatefulWidget {
 }
 
 class _ItemListScreenState extends State<ItemListScreen> {
-
   final _api = ApiService();
-  late Future<List<Item>> _items; // using future so everything works async with the api service
+  late Future<List<Item>>
+  _items; // using future so everything works async with the api service
 
   @override
   void initState() {
@@ -31,16 +28,48 @@ class _ItemListScreenState extends State<ItemListScreen> {
     await _items;
   }
 
-  Future<void> _openForm([Item? item]) async {
-    final changed = await Navigator.pushNamed(context, '/item', arguments: item);
+  // multipurposed open form func to except either an item or qr code for the scanner feature
+  Future<void> _openForm([Object? arguments]) async {
+    final changed = await Navigator.pushNamed(
+      context,
+      '/item',
+      arguments: arguments,
+    );
     if (changed == true) _reload();
+  }
+
+  // a new scanner method to either open the form to edit or create
+  Future<void> _scan() async {
+    final sku = await Navigator.pushNamed(context, '/scan') as String?;
+    if (sku == null || !mounted) return; // user pressed back without scanning
+
+    try {
+      final item = await _api.findBySku(sku);
+      if (mounted)
+        _openForm(item ?? sku); // existing item → edit, unknown SKU → create
+    } catch (e) {
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Inventory Manager')),
-      floatingActionButton: FloatingActionButton(   // tool bar button for adding an item
+      appBar: AppBar(
+        title: const Text('Inventory Manager'),
+        actions: [
+          // a new button to open the scanner in the app bar
+          IconButton(
+            onPressed: _scan,
+            icon: const Icon(Icons.qr_code_scanner),
+            tooltip: 'Scan QR',
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        // tool bar button for adding an item
         onPressed: () => _openForm(),
         tooltip: 'Add item',
         child: const Icon(Icons.add),
@@ -74,7 +103,8 @@ class _ItemListScreenState extends State<ItemListScreen> {
               itemCount: items.length,
               itemBuilder: (context, i) {
                 final item = items[i];
-                return ItemTile(  // all listed items in the db
+                return ItemTile(
+                  // all listed items in the db
                   onTap: () => _openForm(item),
                   item: item,
                 );
@@ -119,13 +149,20 @@ class ItemTile extends StatelessWidget {
                 children: [
                   Text(
                     item.name,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 21),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 21,
+                    ),
                   ),
                   Text(item.sku),
                   Text(
-                    outOfStock ? 'Out of stock' : 'Qty ${item.quantity} · \$${item.price}',
+                    outOfStock
+                        ? 'Out of stock'
+                        : 'Qty ${item.quantity} · \$${item.price}',
                     style: TextStyle(
-                      color: outOfStock ? Theme.of(context).colorScheme.error : null,
+                      color: outOfStock
+                          ? Theme.of(context).colorScheme.error
+                          : null,
                     ),
                   ),
                 ],
