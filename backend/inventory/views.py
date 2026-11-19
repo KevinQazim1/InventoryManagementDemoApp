@@ -22,11 +22,11 @@ class ItemViewSet(viewsets.ModelViewSet):
 
         return items;
 
-    # Decorator to wrap function within django, with only POST allowed (Create)
-    @api_view(["POST"]) # Not using Delete here for loggin out because logging out is an action strictly, no resource or argument is needed so POST is the conventional way to log a user out
-    def logout(request):
-        
-        if request.auth:  # the Token object, when the request came in with a token
-            request.auth.delete()  # deleting it at the "front desk" makes the card useless everywhere / DELETE FROM authtoken_token WHERE key = ''
-        
-        return Response(status=204) # success code
+# Decorator to wrap function within django, with only POST allowed (Create)
+@api_view(["POST"]) # Not using Delete here for loggin out because logging out is an action strictly, no resource or argument is needed so POST is the conventional way to log a user out
+def logout(request):
+    
+    if request.auth:  # the Token object, when the request came in with a token
+        request.auth.delete()  # deleting it at the "front desk" makes the card useless everywhere / DELETE FROM authtoken_token WHERE key = ''
+    
+    return Response(status=204) # success code
