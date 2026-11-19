@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "rest_framework",
+    "rest_framework.authtoken",     # adding djangos token system for user authentication - contains token model which acts as a record book for authenticated users
     "inventory",
 ]
 
@@ -130,4 +131,16 @@ MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
+}
+
+REST_FRAMEWORK = {
+    # How Django figures out who is making the request 
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",   #  The apps token check
+        "rest_framework.authentication.SessionAuthentication", #  The webs session (through cookies) check
+    ],
+    # Who is allowed in - users that have already logged in / already authenticated
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",   # checks whether token or session cookie is held 
+    ],
 }
