@@ -5,6 +5,11 @@ class ApiException implements Exception {
   final String body;
   ApiException(this.statusCode, this.body);
 
+// editing the to string for the cases that the token/session for authentication is not avaible
   @override
-  String toString() => statusCode == 400 ? 'Check the form: $body' : 'Server error ($statusCode)';
+  String toString() => switch (statusCode) {
+        400 => 'Check the form: $body',
+        401 => 'Your session expired, please log in again',
+        _ => 'Server error ($statusCode)',
+      };
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/models/item.dart';
 import '../data/services/api_service.dart';
+import '../data/exceptions/api_exception.dart';
 
 class ItemListScreen extends StatefulWidget {
   const ItemListScreen({super.key});
@@ -54,6 +55,17 @@ class _ItemListScreenState extends State<ItemListScreen> {
     }
   }
 
+  // new funcs for the auth feature of logging in and logging out
+    // Wipe the navigation history and go to login, so Back can't return to the list
+  void _goToLogin() {
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  }
+
+  Future<void> _logout() async {
+    await _api.logout();
+    if (mounted) _goToLogin();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,6 +78,11 @@ class _ItemListScreenState extends State<ItemListScreen> {
             icon: const Icon(Icons.qr_code_scanner),
             tooltip: 'Scan QR',
           ),
+          IconButton( // new button for logging out
+            onPressed: _logout, 
+            icon: const Icon(Icons.logout), 
+            tooltip: 'Log out'
+            ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -76,18 +93,22 @@ class _ItemListScreenState extends State<ItemListScreen> {
       ),
       body: FutureBuilder<List<Item>>(
         future: _items,
-        builder: (context, snap) {
+        builder: (context, snap) {  // snap = Async snapshot, used if dealing with async elements
           if (snap.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snap.hasError) {
+          if (snap.hasError) {  // modifiing this to adjust to the new login feat, shows login button if not logged in
+            final expired = snap.error is ApiException && (snap.error as ApiException).statusCode == 401;
             return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Could not reach the server. Please refresh'),
+                  Text(expired ? 'Your session expired.' : 'Could not reach the server.'),
                   const SizedBox(height: 12),
-                  FilledButton(onPressed: _reload, child: const Text('Retry')),
+                  FilledButton(
+                    onPressed: expired ? _goToLogin : _reload,
+                    child: Text(expired ? 'Log in again' : 'Retry'),
+                  ),
                 ],
               ),
             );
